@@ -1,0 +1,57 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool: rogers-agents
+
+stages:
+  - stage: terraforminitandvalidtae
+    jobs:
+      - job: tearrforminit
+        displayName: Run terraform init 
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+            backendServiceArm: 'rogers-svc'
+            backendAzureRmResourceGroupName: 'test-rg'
+            backendAzureRmStorageAccountName: 'teststrg56'
+            backendAzureRmContainerName: 'test-container'
+            backendAzureRmKey: 'dev.tfstate'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'validate'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+
+  - stage: terraformplan
+    jobs:
+      - job: terraformplan 
+        displayName: Run terraform plan 
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+            backendServiceArm: 'rogers-svc'
+            backendAzureRmResourceGroupName: 'test-rg'
+            backendAzureRmStorageAccountName: 'teststrg56'
+            backendAzureRmContainerName: 'test-container'
+            backendAzureRmKey: 'dev.tfstate'
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+            environmentServiceNameAzureRM: 'rogers-svc'
+  
+
+
