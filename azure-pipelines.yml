@@ -30,7 +30,35 @@ stages:
             provider: 'azurerm'
             command: 'validate'
             workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  - stage: scanstagetflint
+    jobs:
+      - job: scanruntflint
+        displayName: run the scan report
+        steps:
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script: |
+              tflint --init 
+               tflint
+  - stage: scanruntfsec
+    jobs:
+      - job: runtfsec
+        displayName: run tf sec
+        steps:
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script: 'tfsec .'
 
+  - stage: scanchecov
+    jobs:
+      - job: runscancheckov
+        displayName: run scan checkov
+        steps:
+        - task: PowerShell@2
+          inputs:
+            filePath: 'checkov -d . --framework terraform'
   - stage: terraformplan
     jobs:
       - job: terraformplan 
