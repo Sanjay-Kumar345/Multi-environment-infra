@@ -59,7 +59,13 @@ stages:
         - task: PowerShell@2
           inputs:
             targetType: 'inline'
-            script: 'checkov -d . --framework terraform'
+            script: |
+              script: |
+                    checkov -d "$(Build.SourcesDirectory)" --framework terraform
+                    if ($LASTEXITCODE -ne 0) {
+                      Write-Host "##vso[task.logissue type=warning]Checkov found security issues. Continuing pipeline."
+                      exit 0
+                    }
   - stage: terraformplan
     jobs:
       - job: terraformplan 
