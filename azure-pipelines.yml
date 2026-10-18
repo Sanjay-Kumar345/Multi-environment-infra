@@ -7,9 +7,23 @@ trigger:
 - main
 
 pool: rogers-agents
+parameters:
+  - name: runstage
+    displayName: Select Stage To Run
+    type: string
+    default: checkov 
+    values:
+      - checkov
+      - tflint
+      - tfsec
+      - terraformplan
+      - all
 
 stages:
   - stage: terraforminitandvalidtae
+    displayName: Terraform Init And Validate
+    dependsOn: []
+    condition:  and(succeeded(), eq('${{ parameters.runStage }}', 'all'))
     jobs:
       - job: tearrforminit
         displayName: Run terraform init 
@@ -31,6 +45,9 @@ stages:
             command: 'validate'
             workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
   - stage: scanstagetflint
+    displayName: Run Tf Lint
+    dependsOn: []
+    condition: and(succeeded(), or(eq('${{ parameters.runStage }}', 'tflint'), eq('${{ parameters.runStage }}', 'all')))
     jobs:
       - job: scanruntflint
         displayName: run the scan report
@@ -42,6 +59,9 @@ stages:
               tflint --init 
                tflint
   - stage: scanruntfsec
+    displayName: Run Tfsec
+    dependsOn: []
+    condition: and(succeeded(), or(eq('${{ parameters.runStage }}', 'tfsec'), eq('${{ parameters.runStage }}', 'all')))
     jobs:
       - job: runtfsec
         displayName: run tf sec
@@ -52,6 +72,9 @@ stages:
             script: 'tfsec .'
 
   - stage: scanchecov
+    displayName: Run Checkov
+    dependsOn: []
+    condition: and(succeeded(), or(eq('${{ parameters.runStage }}', 'checkov'), eq('${{ parameters.runStage }}', 'all')))
     jobs:
       - job: runscancheckov
         displayName: run scan checkov
@@ -60,13 +83,14 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              script: |
                     checkov -d "$(Build.SourcesDirectory)" --framework terraform
                     if ($LASTEXITCODE -ne 0) {
                       Write-Host "##vso[task.logissue type=warning]Checkov found security issues. Continuing pipeline."
                       exit 0
                     }
   - stage: terraformplan
+    dependsOn: []
+    condition: and(succeeded(), or(eq('${{ parameters.runStage }}', 'terraformplan'), eq('${{ parameters.runStage }}', 'all')))
     jobs:
       - job: terraformplan 
         displayName: Run terraform plan 
