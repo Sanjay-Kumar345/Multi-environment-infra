@@ -111,6 +111,33 @@ stages:
             command: 'plan'
             workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
             environmentServiceNameAzureRM: 'rogers-svc'
+
+  - stage: terraformapply
+    dependsOn: []
+    condition: and(succeeded(), or(eq('${{ parameters.runStage }}', 'terraformpapply'), eq('${{ parameters.runStage }}', 'all')))
+    jobs:
+      - job: terraformplan
+        displayName: Run terraform apply
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+            backendServiceArm: 'rogers-svc'
+            backendAzureRmResourceGroupName: 'test-rg'
+            backendAzureRmStorageAccountName: 'teststrg56'
+            backendAzureRmContainerName: 'test-container'
+            backendAzureRmKey: 'dev.tfstate'
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+            commandOptions: '-auto-approve'
+            environmentServiceNameAzureRM: 'rogers-svc'
+
+
   
 
 
