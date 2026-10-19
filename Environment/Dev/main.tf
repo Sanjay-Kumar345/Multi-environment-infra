@@ -15,3 +15,22 @@ module "vnet-resource" {
   vnet-name  = var.vnet-name
   depends_on = [module.resource-group]
 }
+
+module "subnet-resource" {
+  source      = "../../Modules/azurerm-subnet"
+  subnet-name = var.subnet-name
+  depends_on  = [module.vnet-resource]
+}
+
+module "bastion-resource" {
+  source        = "../../Modules/azurerm_bastion"
+  bastion-name  = var.bastion-name
+  depends_on    = [module.subnet-resource]
+}
+
+
+module "vm-resource" {
+  source     = "../../Modules/azurerm_virtual_machine"
+  vm-name    = var.vm-name
+  depends_on = [module.subnet-resource]
+}
